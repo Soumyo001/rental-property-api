@@ -13,6 +13,9 @@ func main() {
 		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	}
 
+	datapath := beego.AppConfig.DefaultString("datapath", "data/rental_properties.json")
+	logs.Info("Loaded data file from: %v", datapath)
+
 	logs.Info("Server running at http://localhost:8080...")
 	beego.Run()
 }
