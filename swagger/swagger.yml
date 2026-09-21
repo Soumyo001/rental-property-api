@@ -1,0 +1,27 @@
+swagger: "2.0"
+info:
+  title: Rental Property API
+  description: |
+    Main route of rental property API
+  version: 1.0.0
+  contact:
+    email: admin@w3engineers.com
+basePath: /v1
+paths:
+  /properties/:
+    get:
+      tags:
+      - properties
+      description: |-
+        Get the dummy JSON response data
+        <br>
+      operationId: PropertyController.Dummy GET property
+      responses:
+        "200":
+          description: '"ok"'
+          schema:
+            type: string
+        "400":
+          description: '{object} string "internal error"'
+        "500":
+          description: '{object} string "internal error"'
