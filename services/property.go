@@ -17,19 +17,6 @@ type Store struct {
 
 var defaultStore *Store
 
-func (s *Store) Count() int {
-	return len(s.properties)
-}
-
-func (s *Store) FindByID(propertyID string) (models.PropertyResponse, bool) {
-	position, found := s.index[propertyID]
-	if !found {
-		return models.PropertyResponse{}, false
-	}
-
-	return transform(s.properties[position]), true
-}
-
 func emptyIfNil(values []string) []string {
 	if values == nil {
 		return []string{}
@@ -142,6 +129,19 @@ func loadFromFile(path string) (*Store, error) {
 
 func GetStore() *Store {
 	return defaultStore
+}
+
+func (s *Store) Count() int {
+	return len(s.properties)
+}
+
+func (s *Store) FindByID(propertyID string) (models.PropertyResponse, bool) {
+	position, found := s.index[propertyID]
+	if !found {
+		return models.PropertyResponse{}, false
+	}
+
+	return transform(s.properties[position]), true
 }
 
 func Init(path string) error {
