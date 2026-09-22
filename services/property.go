@@ -30,45 +30,6 @@ func (s *Store) FindByID(propertyID string) (models.PropertyResponse, bool) {
 	return transform(s.properties[position]), true
 }
 
-func transform(src models.SourceProperty) models.PropertyResponse {
-	return models.PropertyResponse{
-		ID:   src.ID,
-		Feed: src.Feed,
-		GeoInfo: models.GeoInfo{
-			Breadcrumbs: parseBreadcrumbs(src.Categories, src.ID),
-			City:        src.City,
-			Country:     src.Country,
-			CountryCode: src.CountryCode,
-			Name:        src.Display,
-			LocationID:  src.LocationID,
-			Lat:         latOf(src.LonLat),
-			Lon:         lonOf(src.LonLat),
-			State:       src.State,
-			StateAbbr:   src.StateAbbr,
-		},
-		Property: models.Property{
-			Amenities:    emptyIfNil(src.AmenityCategories),
-			Name:         src.PropertyName,
-			Slug:         src.PropertySlug,
-			PropertyType: src.PropertyTypeCategory,
-			Price:        src.USDPrice,
-			ReviewScore:  src.ReviewScoreGeneral,
-			StarRating:   src.StarRating,
-			Counts: models.PropertyCount{
-				Bathroom:  src.BathroomCount,
-				Bedroom:   src.BedroomCount,
-				Reviews:   src.NumberOfReview,
-				Occupancy: src.Occupancy,
-			},
-			Image: models.PropertyImage{
-				Count:  len(src.Images),
-				Images: emptyIfNil(src.Images),
-			},
-		},
-		Published: src.Published,
-	}
-}
-
 func emptyIfNil(values []string) []string {
 	if values == nil {
 		return []string{}
@@ -112,6 +73,45 @@ func parseBreadcrumbs(category string, propertyID string) []models.BreadCrumb {
 		})
 	}
 	return breadCrumbs
+}
+
+func transform(src models.SourceProperty) models.PropertyResponse {
+	return models.PropertyResponse{
+		ID:   src.ID,
+		Feed: src.Feed,
+		GeoInfo: models.GeoInfo{
+			Breadcrumbs: parseBreadcrumbs(src.Categories, src.ID),
+			City:        src.City,
+			Country:     src.Country,
+			CountryCode: src.CountryCode,
+			Name:        src.Display,
+			LocationID:  src.LocationID,
+			Lat:         latOf(src.LonLat),
+			Lon:         lonOf(src.LonLat),
+			State:       src.State,
+			StateAbbr:   src.StateAbbr,
+		},
+		Property: models.Property{
+			Amenities:    emptyIfNil(src.AmenityCategories),
+			Name:         src.PropertyName,
+			Slug:         src.PropertySlug,
+			PropertyType: src.PropertyTypeCategory,
+			Price:        src.USDPrice,
+			ReviewScore:  src.ReviewScoreGeneral,
+			StarRating:   src.StarRating,
+			Counts: models.PropertyCount{
+				Bathroom:  src.BathroomCount,
+				Bedroom:   src.BedroomCount,
+				Reviews:   src.NumberOfReview,
+				Occupancy: src.Occupancy,
+			},
+			Image: models.PropertyImage{
+				Count:  len(src.Images),
+				Images: emptyIfNil(src.Images),
+			},
+		},
+		Published: src.Published,
+	}
 }
 
 func newStore(records []models.SourceProperty) *Store {
