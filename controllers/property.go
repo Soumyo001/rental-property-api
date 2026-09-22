@@ -3,10 +3,11 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"rental-property-api/models"
-	"rental-property-api/services"
 	"strconv"
 	"strings"
+
+	"rental-property-api/models"
+	"rental-property-api/services"
 
 	"github.com/beego/beego/v2/core/logs"
 )
@@ -125,10 +126,28 @@ func (p *PropertyController) readSearchOptions() (models.FilterOptions, error) {
 	return options, nil
 }
 
+// GetProperties returns the filtered list of properties.
+// @Title List properties
+// @Description List properties with search params
+// @Param min_price query float64 false "lowest usd_price to include"
+// @Param max_price query float64 false "highest usd_price to include"
+// @Param min_star_rating query int false "lowest star rating to include"
+// @Param min_review_score query float64 false "lowest review score to include"
+// @Param min_reviews query int false "lowest review count to include"
+// @Param published query bool false "true or false"
+// @Param property_type query string false "Hotel, House, Apartment, Villa, Resort or Hostel"
+// @Param feed query int false "11, 12, 22 or 24"
+// @Param min_bedroom query int false "lowest bedroom count to include"
+// @Param amenities query string false "comma separated string list"
+// @Param limit query int false "how many results to return"
+// @Success 200 {object} models.ListResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @router / [get]
 func (p *PropertyController) GetProperties() {
 	searchOptions, err := p.readSearchOptions()
 	if err != nil {
-		logs.Error("Failed to read search params: %v", err)
+		logs.Warning("Failed to read search params: %v", err)
 		p.writeError(http.StatusBadRequest, err.Error())
 		return
 	}
@@ -144,10 +163,19 @@ func (p *PropertyController) GetProperties() {
 	p.writeJSON(http.StatusOK, models.ListResponse{Result: properties})
 }
 
+// GetPropertyByID returns a single property.
+// @Title Get property by id
+// @Description Return one property by its id
+// @Param id path string true "property id"
+// @Success 200 {object} models.PropertyResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @router /:id [get]
 func (p *PropertyController) GetPropertyByID() {
 	propertyID := strings.TrimSpace(p.Ctx.Input.Param(":id"))
 	if propertyID == "" {
-		logs.Error("Property ID is not defined")
+		logs.Warning("Property ID is not defined")
 		p.writeError(http.StatusBadRequest, "Property ID is not defined")
 		return
 	}

@@ -9,8 +9,17 @@ func init() {
 
     beego.GlobalControllerRouter["rental-property-api/controllers:PropertyController"] = append(beego.GlobalControllerRouter["rental-property-api/controllers:PropertyController"],
         beego.ControllerComments{
-            Method: "GetDummy",
+            Method: "GetProperties",
             Router: `/`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["rental-property-api/controllers:PropertyController"] = append(beego.GlobalControllerRouter["rental-property-api/controllers:PropertyController"],
+        beego.ControllerComments{
+            Method: "GetPropertyByID",
+            Router: `/:id`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

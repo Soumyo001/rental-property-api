@@ -13,15 +13,224 @@ paths:
       tags:
       - properties
       description: |-
-        Get the dummy JSON response data
+        List properties with search params
         <br>
-      operationId: PropertyController.Dummy GET property
+      operationId: PropertyController.List properties
+      parameters:
+      - in: query
+        name: min_price
+        description: lowest usd_price to include
+        type: number
+        format: double
+      - in: query
+        name: max_price
+        description: highest usd_price to include
+        type: number
+        format: double
+      - in: query
+        name: min_star_rating
+        description: lowest star rating to include
+        type: integer
+        format: int64
+      - in: query
+        name: min_review_score
+        description: lowest review score to include
+        type: number
+        format: double
+      - in: query
+        name: min_reviews
+        description: lowest review count to include
+        type: integer
+        format: int64
+      - in: query
+        name: published
+        description: true or false
+        type: boolean
+      - in: query
+        name: property_type
+        description: Hotel, House, Apartment, Villa, Resort or Hostel
+        type: string
+      - in: query
+        name: feed
+        description: 11, 12, 22 or 24
+        type: integer
+        format: int64
+      - in: query
+        name: min_bedroom
+        description: lowest bedroom count to include
+        type: integer
+        format: int64
+      - in: query
+        name: amenities
+        description: comma separated string list
+        type: string
+      - in: query
+        name: limit
+        description: how many results to return
+        type: integer
+        format: int64
       responses:
         "200":
-          description: '"ok"'
+          description: ""
           schema:
-            type: string
+            $ref: '#/definitions/models.ListResponse'
         "400":
-          description: '{object} string "internal error"'
+          description: '{object} models.ErrorResponse'
         "500":
-          description: '{object} string "internal error"'
+          description: '{object} models.ErrorResponse'
+  /properties/{id}:
+    get:
+      tags:
+      - properties
+      description: |-
+        Return one property by its id
+        <br>
+      operationId: PropertyController.Get property by id
+      parameters:
+      - in: path
+        name: id
+        description: property id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.PropertyResponse'
+        "400":
+          description: '{object} models.ErrorResponse'
+        "404":
+          description: '{object} models.ErrorResponse'
+        "500":
+          description: '{object} models.ErrorResponse'
+definitions:
+  models.BreadCrumb:
+    title: BreadCrumb
+    type: object
+    properties:
+      Display:
+        type: array
+        items:
+          type: string
+      LocationID:
+        type: string
+      Name:
+        type: string
+      Slug:
+        type: string
+      Type:
+        type: string
+  models.GeoInfo:
+    title: GeoInfo
+    type: object
+    properties:
+      Breadcrumbs:
+        type: array
+        items:
+          $ref: '#/definitions/models.BreadCrumb'
+      City:
+        type: string
+      Country:
+        type: string
+      CountryCode:
+        type: string
+      Lat:
+        type: number
+        format: double
+      LocationID:
+        type: string
+      Lon:
+        type: number
+        format: double
+      Name:
+        type: string
+      State:
+        type: string
+      StateAbbr:
+        type: string
+  models.ListResponse:
+    title: ListResponse
+    type: object
+    properties:
+      Result:
+        $ref: '#/definitions/models.ListResult'
+  models.ListResult:
+    title: ListResult
+    type: object
+    properties:
+      Count:
+        type: integer
+        format: int64
+      Items:
+        type: array
+        items:
+          $ref: '#/definitions/models.PropertyResponse'
+  models.Property:
+    title: Property
+    type: object
+    properties:
+      Amenities:
+        type: array
+        items:
+          type: string
+      Counts:
+        $ref: '#/definitions/models.PropertyCount'
+      Image:
+        $ref: '#/definitions/models.PropertyImage'
+      Name:
+        type: string
+      Price:
+        type: number
+        format: double
+      PropertyType:
+        type: string
+      ReviewScore:
+        type: number
+        format: double
+      Slug:
+        type: string
+      StarRating:
+        type: integer
+        format: int64
+  models.PropertyCount:
+    title: PropertyCount
+    type: object
+    properties:
+      Bathroom:
+        type: integer
+        format: int64
+      Bedroom:
+        type: integer
+        format: int64
+      Occupancy:
+        type: integer
+        format: int64
+      Reviews:
+        type: integer
+        format: int64
+  models.PropertyImage:
+    title: PropertyImage
+    type: object
+    properties:
+      Count:
+        type: integer
+        format: int64
+      Images:
+        type: array
+        items:
+          type: string
+  models.PropertyResponse:
+    title: PropertyResponse
+    type: object
+    properties:
+      Feed:
+        type: integer
+        format: int64
+      GeoInfo:
+        $ref: '#/definitions/models.GeoInfo'
+      ID:
+        type: string
+      Property:
+        $ref: '#/definitions/models.Property'
+      Published:
+        type: boolean
