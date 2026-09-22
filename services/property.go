@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,9 +16,22 @@ type Store struct {
 	index      map[string]int
 }
 
-// private methods
-
+// private methods & variables
 var defaultStore *Store
+var allowedFeeds = map[int]bool{
+	11: true,
+	12: true,
+	22: true,
+	24: true,
+}
+var allowedPropertyTypes = map[string]bool{
+	"Hotel":     true,
+	"House":     true,
+	"Apartment": true,
+	"Villa":     true,
+	"Resort":    true,
+	"Hostel":    true,
+}
 
 // response transformation
 func emptyIfNil(values []string) []string {
@@ -49,7 +63,7 @@ func parseBreadcrumbs(category string, propertyID string) []models.BreadCrumb {
 
 	var decoded []models.SourceCategory
 	if err := json.Unmarshal([]byte(category), &decoded); err != nil {
-		logs.Error("failed to decode property %s: %v", propertyID, err)
+		logs.Error("failed to decode category of property %s: %v", propertyID, err)
 		return breadCrumbs
 	}
 
@@ -105,12 +119,16 @@ func transform(src models.SourceProperty) models.PropertyResponse {
 }
 
 // filter logics
-func matchesAminity(propertyAmenities []string, filterAminities []string) bool {
-	for _, filterAminity := range filterAminities {
-		for _, propertyAminity := range propertyAmenities {
-			if filterAminity == propertyAminity {
-				return true
-			}
+func matchesAmenity(propertyAmenities []string, filterAmenities []string) bool {
+	hasFilterAmenity := make(map[string]bool)
+
+	for _, propertyAmenity := range propertyAmenities {
+		hasFilterAmenity[propertyAmenity] = true
+	}
+
+	for _, filterAmenity := range filterAmenities {
+		if hasFilterAmenity[filterAmenity] {
+			return true
 		}
 	}
 	return false
@@ -144,7 +162,7 @@ func filter(property models.SourceProperty, options models.FilterOptions) bool {
 	if options.MinBedroom != nil && *options.MinBedroom > property.BedroomCount {
 		return false
 	}
-	if len(options.Amenities) > 0 && !matchesAminity(property.AmenityCategories, options.Amenities) {
+	if len(options.Amenities) > 0 && !matchesAmenity(property.AmenityCategories, options.Amenities) {
 		return false
 	}
 	return true
@@ -205,7 +223,7 @@ func (s *Store) List(options models.FilterOptions) models.ListResult {
 		filteredProperties = append(filteredProperties, transform(property))
 	}
 
-	if options.Limit != nil && len(filteredProperties) > *options.Limit {
+	if options.Limit != nil && *options.Limit >= 0 && len(filteredProperties) > *options.Limit {
 		filteredProperties = filteredProperties[:*options.Limit]
 	}
 
@@ -222,5 +240,39 @@ func Init(path string) error {
 	}
 
 	defaultStore = store
+	return nil
+}
+
+func ValidateSearchParams(options models.FilterOptions) error {
+	if options.MinPrice != nil && *options.MinPrice < 0 {
+		return errors.New("min_price cannot be negative")
+	}
+	if options.MaxPrice != nil && *options.MaxPrice < 0 {
+		return errors.New("max_price cannot be negative")
+	}
+	if options.MinPrice != nil && options.MaxPrice != nil && *options.MaxPrice < *options.MinPrice {
+		return errors.New("max_price cannot be less than min_price")
+	}
+	if options.MinStarRating != nil && *options.MinStarRating < 0 {
+		return errors.New("min_star_rating cannot be negative")
+	}
+	if options.MinReviewScore != nil && *options.MinReviewScore < 0 {
+		return errors.New("min_review_score cannot be negative")
+	}
+	if options.MinReviews != nil && *options.MinReviews < 0 {
+		return errors.New("min_reviews cannot be negative")
+	}
+	if options.MinBedroom != nil && *options.MinBedroom < 0 {
+		return errors.New("min_bedroom cannot be negative")
+	}
+	if options.Limit != nil && *options.Limit < 1 {
+		return errors.New("limit must be a positive number")
+	}
+	if options.PropertyType != nil && !allowedPropertyTypes[*options.PropertyType] {
+		return errors.New("property_type must be either Hotel, House, Apartment, Villa, Resort or Hostel")
+	}
+	if options.Feed != nil && !allowedFeeds[*options.Feed] {
+		return errors.New("feed must be either 11, 12, 22 or 24")
+	}
 	return nil
 }
