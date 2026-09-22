@@ -15,8 +15,11 @@ type Store struct {
 	index      map[string]int
 }
 
+// private methods
+
 var defaultStore *Store
 
+// response transformation
 func emptyIfNil(values []string) []string {
 	if values == nil {
 		return []string{}
@@ -101,6 +104,53 @@ func transform(src models.SourceProperty) models.PropertyResponse {
 	}
 }
 
+// filter logics
+func matchesAminity(propertyAmenities []string, filterAminities []string) bool {
+	for _, filterAminity := range filterAminities {
+		for _, propertyAminity := range propertyAmenities {
+			if filterAminity == propertyAminity {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func filter(property models.SourceProperty, options models.FilterOptions) bool {
+	if options.MinPrice != nil && *options.MinPrice > property.USDPrice {
+		return false
+	}
+	if options.MaxPrice != nil && *options.MaxPrice < property.USDPrice {
+		return false
+	}
+	if options.MinStarRating != nil && *options.MinStarRating > property.StarRating {
+		return false
+	}
+	if options.MinReviewScore != nil && *options.MinReviewScore > property.ReviewScoreGeneral {
+		return false
+	}
+	if options.MinReviews != nil && *options.MinReviews > property.NumberOfReview {
+		return false
+	}
+	if options.Published != nil && property.Published != *options.Published {
+		return false
+	}
+	if options.PropertyType != nil && *options.PropertyType != property.PropertyTypeCategory {
+		return false
+	}
+	if options.Feed != nil && *options.Feed != property.Feed {
+		return false
+	}
+	if options.MinBedroom != nil && *options.MinBedroom > property.BedroomCount {
+		return false
+	}
+	if len(options.Amenities) > 0 && !matchesAminity(property.AmenityCategories, options.Amenities) {
+		return false
+	}
+	return true
+}
+
+// source json loader
 func newStore(records []models.SourceProperty) *Store {
 	index := make(map[string]int, len(records))
 	for i, record := range records {
@@ -127,6 +177,7 @@ func loadFromFile(path string) (*Store, error) {
 	return newStore(decoded), nil
 }
 
+// public methods
 func GetStore() *Store {
 	return defaultStore
 }
@@ -142,6 +193,26 @@ func (s *Store) FindByID(propertyID string) (models.PropertyResponse, bool) {
 	}
 
 	return transform(s.properties[position]), true
+}
+
+func (s *Store) List(options models.FilterOptions) models.ListResult {
+	filteredProperties := make([]models.PropertyResponse, 0)
+
+	for _, property := range s.properties {
+		if !filter(property, options) {
+			continue
+		}
+		filteredProperties = append(filteredProperties, transform(property))
+	}
+
+	if options.Limit != nil && len(filteredProperties) > *options.Limit {
+		filteredProperties = filteredProperties[:*options.Limit]
+	}
+
+	return models.ListResult{
+		Count: len(filteredProperties),
+		Items: filteredProperties,
+	}
 }
 
 func Init(path string) error {
