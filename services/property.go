@@ -13,11 +13,11 @@ type Store struct {
 	index      map[string]int
 }
 
-var defaultStore *Store
-
 func (s *Store) Count() int {
 	return len(s.properties)
 }
+
+var defaultStore *Store
 
 func newStore(records []models.SourceProperty) *Store {
 	index := make(map[string]int, len(records))
