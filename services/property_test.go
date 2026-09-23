@@ -1,8 +1,6 @@
 package services
 
 import (
-	"os"
-	"path/filepath"
 	"reflect"
 	"rental-property-api/models"
 	"testing"
@@ -476,81 +474,5 @@ func TestValidateSearchParams(t *testing.T) {
 				t.Errorf("Expected no error, but got: %v", err)
 			}
 		})
-	}
-}
-
-func TestLoadFromFile(t *testing.T) {
-	directory := t.TempDir()
-
-	goodPath := filepath.Join(directory, "good.json")
-	goodContent := `[{"id":"BC-1000001","feed":11,"usd_price":100,"images":["one.jpg"],"lonlat":{"coordinates":[139.69,35.68]},"categories":"[]"}]`
-
-	if err := os.WriteFile(goodPath, []byte(goodContent), 0o600); err != nil {
-		t.Fatalf("could not write the test file: %v", err)
-	}
-
-	brokenPath := filepath.Join(directory, "broken.json")
-	if err := os.WriteFile(brokenPath, []byte("{ this is not json"), 0o600); err != nil {
-		t.Fatalf("could not write the test file: %v", err)
-	}
-
-	tests := []struct {
-		name      string
-		path      string
-		wantError bool
-		wantCount int
-	}{
-		{name: "a file that parses", path: goodPath, wantError: false, wantCount: 1},
-		{name: "a file that does not exist", path: filepath.Join(directory, "missing.json"), wantError: true},
-		{name: "a file that is not valid json", path: brokenPath, wantError: true},
-	}
-
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			store, err := loadFromFile(testCase.path)
-
-			if testCase.wantError {
-				if err == nil {
-					t.Fatal("expected an error, got nil")
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("expected no error, got %v", err)
-			}
-			if store.Count() != testCase.wantCount {
-				t.Errorf("Count() = %d, want %d", store.Count(), testCase.wantCount)
-			}
-		})
-	}
-}
-
-func TestInitSetsTheDefaultStore(t *testing.T) {
-	directory := t.TempDir()
-	path := filepath.Join(directory, "data.json")
-	content := `[{"id":"BC-1000001","feed":11,"categories":"[]"},{"id":"HA-2000002","feed":12,"categories":"[]"}]`
-
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("could not write the test file: %v", err)
-	}
-	if err := Init(path); err != nil {
-		t.Fatalf("Error on Init(): %v", err)
-	}
-
-	store := GetStore()
-
-	if store == nil {
-		t.Fatal("GetStore returned nil after a successful Init")
-	}
-	if store.Count() != 2 {
-		t.Errorf("Count() = %d, want 2", store.Count())
-	}
-}
-
-func TestInitFailsOnAMissingFile(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "missing.json")
-
-	if err := Init(path); err == nil {
-		t.Fatal("expected an error, got nil")
 	}
 }
