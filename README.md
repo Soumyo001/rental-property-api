@@ -17,6 +17,11 @@ go install github.com/beego/bee/v2@latest
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
+- After adding, run:
+```
+source .zshrc # or .bashrc depending on your shell
+```
+
 ## Setup
 
 ```
