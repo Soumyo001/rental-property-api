@@ -374,6 +374,20 @@ func TestStoreList(t *testing.T) {
 			},
 			wantIDs: []string{"HA-2000002", "EP-4000004"},
 		},
+		{
+			name: "minimum price on its own",
+			options: models.FilterOptions{
+				MinPrice: floatPtr(100),
+			},
+			wantIDs: []string{"BC-1000001", "HA-2000002", "EP-4000004"},
+		},
+		{
+			name: "minimum bedroom count on its own",
+			options: models.FilterOptions{
+				MinBedroom: intPtr(4),
+			},
+			wantIDs: []string{"HA-2000002", "EP-4000004"},
+		},
 	}
 
 	for _, testCase := range tests {
@@ -530,5 +544,13 @@ func TestInitSetsTheDefaultStore(t *testing.T) {
 	}
 	if store.Count() != 2 {
 		t.Errorf("Count() = %d, want 2", store.Count())
+	}
+}
+
+func TestInitFailsOnAMissingFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "missing.json")
+
+	if err := Init(path); err == nil {
+		t.Fatal("expected an error, got nil")
 	}
 }
